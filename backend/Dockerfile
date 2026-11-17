@@ -4,5 +4,5 @@ RUN apt-get update && apt-get install -y openssh-client && rm -rf /var/lib/apt/l
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
-EXPOSE 8000
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+EXPOSE 3796
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "3796"]
