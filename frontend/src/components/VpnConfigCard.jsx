@@ -1,34 +1,52 @@
+import { Download, QrCode, Lock, Zap, Shield, Radio } from 'lucide-react'
 import client from '../api/client'
 
 const PROTOCOL_META = {
   openvpn: {
-    icon: '🔒',
+    icon: Lock,
     name: 'OpenVPN',
-    description: '.ovpn file',
+    description: '.ovpn config file',
+    color: 'text-orange-400',
+    bg: 'bg-orange-500/10',
+    border: 'border-orange-500/20',
   },
   wireguard: {
-    icon: '⚡',
+    icon: Zap,
     name: 'WireGuard',
     description: 'wg0.conf file',
+    color: 'text-purple-400',
+    bg: 'bg-purple-500/10',
+    border: 'border-purple-500/20',
   },
   ikev2: {
-    icon: '🛡️',
+    icon: Shield,
     name: 'IKEv2',
     description: 'Certificate config',
+    color: 'text-green-400',
+    bg: 'bg-green-500/10',
+    border: 'border-green-500/20',
   },
   v2ray: {
-    icon: '🚀',
+    icon: Radio,
     name: 'V2Ray',
     description: 'VMess JSON config',
+    color: 'text-blue-400',
+    bg: 'bg-blue-500/10',
+    border: 'border-blue-500/20',
   },
 }
 
 export default function VpnConfigCard({ protocol, serverId }) {
   const meta = PROTOCOL_META[protocol] || {
-    icon: '🔑',
+    icon: Lock,
     name: protocol,
     description: 'Config file',
+    color: 'text-gray-400',
+    bg: 'bg-gray-500/10',
+    border: 'border-gray-500/20',
   }
+
+  const Icon = meta.icon
 
   async function handleDownload() {
     try {
@@ -55,27 +73,31 @@ export default function VpnConfigCard({ protocol, serverId }) {
   }
 
   return (
-    <div className="bg-gray-800 border border-gray-700 rounded-xl p-5 flex flex-col gap-4">
+    <div className={`bg-gray-800/50 border ${meta.border} rounded-xl p-5 flex flex-col gap-4 hover:bg-gray-800 transition-colors`}>
       <div className="flex items-center gap-3">
-        <span className="text-3xl">{meta.icon}</span>
+        <div className={`w-10 h-10 ${meta.bg} rounded-lg flex items-center justify-center flex-shrink-0`}>
+          <Icon size={20} className={meta.color} />
+        </div>
         <div>
           <h3 className="font-semibold text-white">{meta.name}</h3>
-          <p className="text-sm text-gray-400">{meta.description}</p>
+          <p className="text-xs text-gray-400">{meta.description}</p>
         </div>
       </div>
 
       <div className="flex gap-2 mt-auto">
         <button
           onClick={handleDownload}
-          className="flex-1 bg-blue-600 hover:bg-blue-500 text-white text-sm font-medium px-3 py-2 rounded-lg transition-colors"
+          className="flex-1 inline-flex items-center justify-center gap-1.5 bg-blue-600 hover:bg-blue-500 text-white text-sm font-medium px-3 py-2 rounded-lg transition-colors"
         >
-          ⬇ Download
+          <Download size={14} />
+          Download
         </button>
         <button
           onClick={handleQrCode}
-          className="flex-1 bg-gray-700 hover:bg-gray-600 text-white text-sm font-medium px-3 py-2 rounded-lg transition-colors"
+          className="flex-1 inline-flex items-center justify-center gap-1.5 bg-gray-700 hover:bg-gray-600 text-white text-sm font-medium px-3 py-2 rounded-lg transition-colors"
         >
-          📱 QR Code
+          <QrCode size={14} />
+          QR Code
         </button>
       </div>
     </div>
