@@ -1,9 +1,6 @@
-from sqlalchemy.orm import DeclarativeBase
+from .user import User
+from .server import Server
+from .subscription import Subscription
+from .vpn_config import VpnConfig
 
-
-class Base(DeclarativeBase):
-    pass
-
-
-# Import all model modules here so Alembic autogenerate can detect them.
-# Example: from app.models.user import User  # noqa: F401
+__all__ = ["User", "Server", "Subscription", "VpnConfig"]
