@@ -98,6 +98,7 @@ async def stripe_webhook(request: Request, db: AsyncSession = Depends(get_db)):
             location=location,
             status="provisioning",
             ssh_private_key=private_key_pem,
+            root_password=hetzner_data.get("root_password"),
         )
         db.add(server)
         await db.flush()

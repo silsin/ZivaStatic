@@ -23,6 +23,7 @@ class Server(Base):
     location: Mapped[str] = mapped_column(String, nullable=False)
     status: Mapped[str] = mapped_column(String, default="provisioning", nullable=False)
     ssh_private_key: Mapped[str | None] = mapped_column(Text, nullable=True)
+    root_password: Mapped[str | None] = mapped_column(Text, nullable=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime, default=datetime.utcnow, nullable=False
     )

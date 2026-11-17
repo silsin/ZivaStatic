@@ -36,21 +36,41 @@ def wait_for_server(hetzner_server_id: int, max_wait: int = 300) -> bool:
     return False
 
 
-def ssh_connect(ip: str, private_key_str: str, retries: int = 10) -> paramiko.SSHClient:
-    pkey = paramiko.RSAKey.from_private_key(io.StringIO(private_key_str))
+def ssh_connect(
+    ip: str,
+    private_key_str: str = None,
+    root_password: str = None,
+    retries: int = 10,
+) -> paramiko.SSHClient:
     client = paramiko.SSHClient()
     client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+
+    pkey = None
+    if private_key_str:
+        pkey = paramiko.RSAKey.from_private_key(io.StringIO(private_key_str))
 
     last_exc: Exception = RuntimeError("SSH connection failed")
     for attempt in range(1, retries + 1):
         try:
-            client.connect(
-                hostname=ip,
-                username="root",
-                pkey=pkey,
-                timeout=15,
-                banner_timeout=30,
-            )
+            if pkey:
+                client.connect(
+                    hostname=ip,
+                    username="root",
+                    pkey=pkey,
+                    timeout=15,
+                    banner_timeout=30,
+                )
+            elif root_password:
+                client.connect(
+                    hostname=ip,
+                    username="root",
+                    password=root_password,
+                    timeout=15,
+                    banner_timeout=30,
+                )
+            else:
+                raise RuntimeError("No SSH key or root password provided")
+
             logger.info("SSH connected to %s on attempt %d", ip, attempt)
             return client
         except Exception as exc:
@@ -122,7 +142,11 @@ def provision_server(server_id: str, db: Session) -> None:
 
         # 2. SSH connect
         logger.info("Connecting via SSH to %s…", server.ip_address)
-        ssh = ssh_connect(server.ip_address, server.ssh_private_key)
+        ssh = ssh_connect(
+            server.ip_address,
+            private_key_str=server.ssh_private_key,
+            root_password=server.root_password,
+        )
 
         # 3. Provision each protocol
         for protocol, config_remote_path in CONFIG_PATHS.items():
@@ -157,9 +181,10 @@ def provision_server(server_id: str, db: Session) -> None:
                     )
                 )
 
-        # 4. Mark server active, clear private key
+        # 4. Mark server active, clear credentials
         server.status = "active"
         server.ssh_private_key = None
+        server.root_password = None
         db.commit()
         logger.info("Server %s provisioned and marked active.", server_id)
 
