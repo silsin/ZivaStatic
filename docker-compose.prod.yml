@@ -1,0 +1,58 @@
+version: "3.9"
+
+services:
+  postgres:
+    image: postgres:15
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: staticipvpn
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    # No exposed ports — only internal access
+
+  redis:
+    image: redis:7-alpine
+    restart: always
+    # No exposed ports — only internal access
+
+  backend:
+    build: ./backend
+    restart: always
+    command: uvicorn app.main:app --host 0.0.0.0 --port 3796 --workers 2
+    env_file: .env
+    depends_on:
+      - postgres
+      - redis
+
+  celery_worker:
+    build: ./backend
+    restart: always
+    command: celery -A app.tasks.provision_server.celery_app worker --loglevel=info --concurrency=4
+    env_file: .env
+    depends_on:
+      - postgres
+      - redis
+
+  frontend:
+    build: ./frontend
+    restart: always
+    depends_on:
+      - backend
+
+  nginx:
+    image: nginx:alpine
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - /etc/letsencrypt:/etc/letsencrypt:ro
+    depends_on:
+      - backend
+      - frontend
+
+volumes:
+  postgres_data:

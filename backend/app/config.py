@@ -11,7 +11,7 @@ class Settings(BaseSettings):
     STRIPE_SECRET_KEY: str
     STRIPE_WEBHOOK_SECRET: str
     STRIPE_PRICE_ID: str
-    FRONTEND_URL: str = "http://localhost:3000"
+    FRONTEND_URL: str = "http://localhost:1475"
 
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
