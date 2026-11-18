@@ -1,5 +1,6 @@
 import { useEffect, useState, useRef } from 'react'
 import { Link } from 'react-router-dom'
+import { Plus, Server, AlertCircle, Loader2 } from 'lucide-react'
 import client from '../api/client'
 import useAuthStore from '../store/authStore'
 import ServerCard from '../components/ServerCard'
@@ -17,8 +18,8 @@ export default function DashboardPage() {
       const res = await client.get('/servers')
       setServers(res.data)
       return res.data
-    } catch (err) {
-      setError('Failed to load servers.')
+    } catch {
+      setError('Failed to load your IPs.')
       return []
     }
   }
@@ -28,15 +29,10 @@ export default function DashboardPage() {
       try {
         const meRes = await client.get('/auth/me')
         setUser(meRes.data)
-      } catch {
-        // non-critical
-      }
+      } catch {}
       const data = await fetchServers()
       setLoading(false)
-
-      if (data.some((s) => s.status === 'provisioning')) {
-        startPolling()
-      }
+      if (data.some((s) => s.status === 'provisioning')) startPolling()
     }
     init()
     return () => stopPolling()
@@ -46,9 +42,7 @@ export default function DashboardPage() {
     if (pollRef.current) return
     pollRef.current = setInterval(async () => {
       const data = await fetchServers()
-      if (!data.some((s) => s.status === 'provisioning')) {
-        stopPolling()
-      }
+      if (!data.some((s) => s.status === 'provisioning')) stopPolling()
     }, 5000)
   }
 
@@ -59,64 +53,83 @@ export default function DashboardPage() {
     }
   }
 
+  const activeCount = servers.filter((s) => s.status === 'active').length
+  const provisioningCount = servers.filter((s) => s.status === 'provisioning').length
+
   return (
-    <div className="min-h-screen bg-gray-950 text-white px-6 py-10">
-      <div className="max-w-4xl mx-auto">
+    <div className="min-h-screen bg-gray-950 text-white">
+      <div className="max-w-5xl mx-auto px-6 py-12">
+
         {/* Header */}
-        <div className="flex items-start justify-between mb-8">
+        <div className="flex items-start justify-between mb-10">
           <div>
-            <h1 className="text-3xl font-bold mb-1">Dashboard</h1>
+            <h1 className="text-3xl font-bold mb-1">My Static IPs</h1>
             {user && (
-              <p className="text-gray-400 text-sm">
-                {user.email}
-                {user.created_at && (
-                  <span className="ml-3 text-gray-600">
-                    Joined {new Date(user.created_at).toLocaleDateString()}
-                  </span>
-                )}
-              </p>
+              <p className="text-gray-500 text-sm">{user.email}</p>
             )}
           </div>
           <Link
             to="/order"
-            className="bg-blue-600 hover:bg-blue-500 text-white font-semibold px-5 py-2.5 rounded-xl transition-colors text-sm"
+            className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-500 text-white font-semibold px-5 py-2.5 rounded-xl transition-colors text-sm"
           >
-            + Order New Server
+            <Plus size={16} />
+            New IP
           </Link>
         </div>
 
+        {/* Stats */}
+        {servers.length > 0 && (
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-10">
+            <div className="bg-gray-900 border border-gray-800 rounded-xl p-5">
+              <div className="text-2xl font-bold text-white">{servers.length}</div>
+              <div className="text-sm text-gray-500 mt-1">Total IPs</div>
+            </div>
+            <div className="bg-gray-900 border border-gray-800 rounded-xl p-5">
+              <div className="text-2xl font-bold text-green-400">{activeCount}</div>
+              <div className="text-sm text-gray-500 mt-1">Active</div>
+            </div>
+            <div className="bg-gray-900 border border-gray-800 rounded-xl p-5">
+              <div className="text-2xl font-bold text-yellow-400">{provisioningCount}</div>
+              <div className="text-sm text-gray-500 mt-1">Provisioning</div>
+            </div>
+          </div>
+        )}
+
         {error && (
-          <div className="bg-red-500/10 border border-red-500/30 text-red-400 text-sm px-4 py-3 rounded-lg mb-6">
+          <div className="flex items-center gap-2 bg-red-500/10 border border-red-500/30 text-red-400 text-sm px-4 py-3 rounded-lg mb-6">
+            <AlertCircle size={15} />
             {error}
           </div>
         )}
 
         {loading ? (
-          <div className="flex items-center justify-center py-20 text-gray-400">
-            <span className="animate-spin h-6 w-6 border-2 border-blue-400 border-t-transparent rounded-full mr-3" />
-            Loading servers...
+          <div className="flex items-center justify-center py-24 text-gray-400">
+            <Loader2 size={24} className="animate-spin mr-3" />
+            Loading your IPs...
           </div>
         ) : servers.length === 0 ? (
-          <div className="text-center py-20">
-            <div className="text-5xl mb-4">🖥️</div>
-            <h2 className="text-xl font-semibold mb-2">No servers yet</h2>
-            <p className="text-gray-400 mb-6">Order your first static IP VPN server to get started.</p>
+          <div className="text-center py-24 border border-dashed border-gray-800 rounded-2xl">
+            <div className="w-16 h-16 bg-gray-900 rounded-2xl flex items-center justify-center mx-auto mb-5">
+              <Server size={28} className="text-gray-600" />
+            </div>
+            <h2 className="text-xl font-semibold mb-2">No static IPs yet</h2>
+            <p className="text-gray-500 mb-8 max-w-sm mx-auto text-sm">
+              Order your first dedicated static IP address. It will be provisioned automatically within minutes.
+            </p>
             <Link
               to="/order"
-              className="bg-blue-600 hover:bg-blue-500 text-white font-semibold px-8 py-3 rounded-xl transition-colors"
+              className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-500 text-white font-semibold px-8 py-3 rounded-xl transition-colors"
             >
-              Order Your First Server
+              <Plus size={16} />
+              Get Your First Static IP
             </Link>
           </div>
         ) : (
-          <>
-            <h2 className="text-lg font-semibold mb-4 text-gray-300">Your Servers</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {servers.map((server) => (
-                <ServerCard key={server.id} server={server} />
-              ))}
-            </div>
-          </>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {servers.map((server) => (
+              <ServerCard key={server.id} server={server} />
+            ))}
+          </div>
         )}
       </div>
     </div>
