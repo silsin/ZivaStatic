@@ -15,6 +15,7 @@ from app.database import get_db
 from app.models.server import Server
 from app.models.subscription import Subscription
 from app.models.user import User
+from app.models.price_override import PriceOverride
 from app.schemas.subscription import CheckoutResponse, SubscriptionCreate, SubscriptionOut
 from app.services.stripe_service import create_checkout_session
 from app.services.hetzner import create_server_sync
@@ -48,18 +49,28 @@ async def create_subscription(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    # 1. Create a pending Subscription record
+    # 1. Look up price override for this location
+    price_result = await db.execute(
+        select(PriceOverride).where(
+            PriceOverride.location_name == body.location,
+            PriceOverride.is_active == True,
+        )
+    )
+    price_override = price_result.scalar_one_or_none()
+    price_usd = price_override.price_usd if price_override else 9.99
+
+    # 2. Create a pending Subscription record
     subscription = Subscription(
         user_id=current_user.id,
         status="pending",
         plan_name="Static IP VPN",
-        price_usd=9.99,
+        price_usd=price_usd,
     )
     db.add(subscription)
     await db.flush()
     await db.refresh(subscription)
 
-    # 2. Stripe disabled — bypass payment and provision directly
+    # 3. Stripe disabled — bypass payment and provision directly
     if not settings.STRIPE_ENABLED:
         logger.info("Stripe disabled — provisioning server directly for subscription %s", subscription.id)
 
@@ -97,7 +108,7 @@ async def create_subscription(
 
         return CheckoutResponse(checkout_url=f"{settings.FRONTEND_URL}/dashboard?payment=success")
 
-    # 3. Stripe enabled — create checkout session
+    # 4. Stripe enabled — create checkout session
     success_url = f"{settings.FRONTEND_URL}/dashboard?payment=success"
     cancel_url = f"{settings.FRONTEND_URL}/dashboard?payment=cancelled"
 
