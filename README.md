@@ -158,6 +158,55 @@ All endpoints are prefixed with `/api/v1`.
 
 ---
 
+## Admin Panel
+
+The admin panel is available at `/admin/login`.
+
+### Creating the first admin user
+
+After the database is running, promote a user to admin via SQL:
+
+```sql
+UPDATE users SET is_admin = true WHERE email = 'your@email.com';
+```
+
+Run this against the production database:
+
+```bash
+docker compose exec postgres psql -U postgres -d staticipvpn -c "UPDATE users SET is_admin = true WHERE email = 'your@email.com';"
+```
+
+Or for the production compose file:
+
+```bash
+docker compose -f docker-compose.prod.yml exec postgres psql -U postgres -d staticipvpn -c "UPDATE users SET is_admin = true WHERE email = 'your@email.com';"
+```
+
+### Admin features
+
+- **Dashboard** — stats overview: total users, servers, revenue, server status breakdown
+- **Users** — list all users, search by email, toggle admin status, view full detail with payment history
+- **Servers** — list all servers across all users, force-delete servers (removes from Hetzner + DB)
+- **Subscriptions** — list all subscriptions, manually update status (active/pending/cancelled)
+- **Pricing** — view Hetzner real server costs, set custom selling price per location, enable/disable locations, see your margin
+- **Settings** — site name, tagline, promo banner, payment method toggles
+
+### Applying the database migration
+
+The Alembic migration `002_admin_panel` adds `is_admin` to users, and creates `admin_settings` and `price_overrides` tables.
+
+To apply:
+```bash
+docker compose exec backend alembic upgrade head
+```
+
+Or for production:
+```bash
+docker compose -f docker-compose.prod.yml exec backend alembic upgrade head
+```
+
+---
+
 ## Project Structure
 
 ```
