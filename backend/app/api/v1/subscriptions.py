@@ -63,7 +63,7 @@ async def create_subscription(
     subscription = Subscription(
         user_id=current_user.id,
         status="pending",
-        plan_name="Static IP VPN",
+        plan_name="Dedicated Static IP",
         price_usd=price_usd,
     )
     db.add(subscription)
@@ -75,7 +75,7 @@ async def create_subscription(
         logger.info("Stripe disabled — provisioning server directly for subscription %s", subscription.id)
 
         private_key_pem, public_key_openssh = _generate_rsa_keypair()
-        server_name = f"vpn-{str(subscription.id)[:8]}"
+        server_name = f"ip-{str(subscription.id)[:8]}"
 
         hetzner_data = await asyncio.to_thread(
             create_server_sync,

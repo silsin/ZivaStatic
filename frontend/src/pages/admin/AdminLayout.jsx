@@ -23,7 +23,7 @@ export default function AdminLayout() {
   }
 
   return (
-    <div className="flex h-screen bg-gray-950 overflow-hidden">
+    <div dir="ltr" lang="en" className="flex h-screen bg-gray-950 overflow-hidden">
       {/* Sidebar */}
       <aside className="w-56 bg-gray-900 border-r border-gray-800 flex flex-col flex-shrink-0">
         <div className="px-5 py-5 border-b border-gray-800">

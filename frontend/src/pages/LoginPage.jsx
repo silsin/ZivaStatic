@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { ShieldCheck, Loader2, AlertCircle } from 'lucide-react'
 import client from '../api/client'
 import useAuthStore from '../store/authStore'
+import { useLang } from '../i18n/LanguageContext'
 
 export default function LoginPage() {
   const [email, setEmail] = useState('')
@@ -11,6 +12,7 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false)
   const setToken = useAuthStore((s) => s.setToken)
   const navigate = useNavigate()
+  const { t } = useLang()
 
   async function handleSubmit(e) {
     e.preventDefault()
@@ -21,7 +23,7 @@ export default function LoginPage() {
       setToken(res.data.access_token)
       navigate('/dashboard')
     } catch (err) {
-      setError(err.response?.data?.detail || 'Incorrect email or password.')
+      setError(err.response?.data?.detail || t.auth.loginError)
     } finally {
       setLoading(false)
     }
@@ -35,8 +37,8 @@ export default function LoginPage() {
           <div className="w-12 h-12 bg-blue-600 rounded-xl flex items-center justify-center mx-auto mb-4">
             <ShieldCheck size={22} className="text-white" />
           </div>
-          <h1 className="text-2xl font-bold text-white mb-1">Welcome back</h1>
-          <p className="text-gray-500 text-sm">Sign in to manage your static IPs</p>
+          <h1 className="text-2xl font-bold text-white mb-1">{t.auth.loginTitle}</h1>
+          <p className="text-gray-500 text-sm">{t.auth.loginSub}</p>
         </div>
 
         <form onSubmit={handleSubmit} className="bg-gray-900 border border-gray-800 rounded-2xl p-7 space-y-5">
@@ -48,9 +50,10 @@ export default function LoginPage() {
           )}
 
           <div className="space-y-1.5">
-            <label className="block text-sm text-gray-400 font-medium">Email address</label>
+            <label className="block text-sm text-gray-400 font-medium">{t.auth.email}</label>
             <input
               type="email"
+              dir="ltr"
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
@@ -60,9 +63,10 @@ export default function LoginPage() {
           </div>
 
           <div className="space-y-1.5">
-            <label className="block text-sm text-gray-400 font-medium">Password</label>
+            <label className="block text-sm text-gray-400 font-medium">{t.auth.password}</label>
             <input
               type="password"
+              dir="ltr"
               required
               value={password}
               onChange={(e) => setPassword(e.target.value)}
@@ -76,14 +80,14 @@ export default function LoginPage() {
             disabled={loading}
             className="w-full inline-flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold py-3 rounded-xl transition-colors"
           >
-            {loading ? <><Loader2 size={16} className="animate-spin" /> Signing in...</> : 'Sign In'}
+            {loading ? <><Loader2 size={16} className="animate-spin" /> {t.auth.loginLoading}</> : t.auth.loginButton}
           </button>
         </form>
 
         <p className="text-center text-gray-500 text-sm mt-6">
-          Don't have an account?{' '}
+          {t.auth.noAccount}{' '}
           <Link to="/register" className="text-blue-400 hover:text-blue-300 transition-colors">
-            Create one free
+            {t.auth.createFree}
           </Link>
         </p>
       </div>

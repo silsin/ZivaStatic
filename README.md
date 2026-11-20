@@ -127,13 +127,13 @@ All endpoints are prefixed with `/api/v1`.
 | `GET` | `/servers/` | Yes | List the current user's servers |
 | `GET` | `/servers/{server_id}` | Yes | Get details for a specific server |
 
-### VPN Configs — `/vpn-configs`
+### VPN Configs — `/profiles`
 
 | Method | Path | Auth | Description |
 |---|---|---|---|
-| `GET` | `/vpn-configs/{server_id}` | Yes | List all VPN configs available for a server |
-| `GET` | `/vpn-configs/{server_id}/{protocol}` | Yes | Download a config file (`openvpn`, `wireguard`, `ikev2`, `v2ray`) |
-| `GET` | `/vpn-configs/{server_id}/{protocol}/qr` | Yes | Download a QR-code PNG of a config |
+| `GET` | `/profiles/{server_id}` | Yes | List all VPN configs available for a server |
+| `GET` | `/profiles/{server_id}/{protocol}` | Yes | Download a config file (`openvpn`, `wireguard`, `ikev2`, `v2ray`) |
+| `GET` | `/profiles/{server_id}/{protocol}/qr` | Yes | Download a QR-code PNG of a config |
 
 ### Webhooks — `/webhooks`
 

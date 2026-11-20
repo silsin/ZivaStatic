@@ -25,7 +25,7 @@ class Subscription(Base):
     stripe_session_id: Mapped[str | None] = mapped_column(String, nullable=True)
     status: Mapped[str] = mapped_column(String, default="pending", nullable=False)
     plan_name: Mapped[str] = mapped_column(
-        String, default="Static IP VPN", nullable=False
+        String, default="Dedicated Static IP", nullable=False
     )
     price_usd: Mapped[float] = mapped_column(Float, default=9.99, nullable=False)
     started_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)

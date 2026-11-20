@@ -9,8 +9,8 @@ from app.api.v1.router import router
 logger = logging.getLogger(__name__)
 
 app = FastAPI(
-    title="Static IP VPN SaaS",
-    description="Automated static IP VPN provisioning via Hetzner Cloud",
+    title="ZivaStatic API",
+    description="Automated dedicated static IP provisioning via Hetzner Cloud",
     version="1.0.0",
 )
 

@@ -80,7 +80,7 @@ async def stripe_webhook(request: Request, db: AsyncSession = Depends(get_db)):
         private_key_pem, public_key_openssh = _generate_rsa_keypair()
 
         # Create the Hetzner server (sync call wrapped in a thread)
-        server_name = f"vpn-{subscription_id_str[:8]}"
+        server_name = f"ip-{subscription_id_str[:8]}"
         hetzner_data = await asyncio.to_thread(
             create_server_sync,
             server_name,

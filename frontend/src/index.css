@@ -1,3 +1,18 @@
+@import 'vazirmatn/Vazirmatn-Variable-font-face.css';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+html[lang='fa'] body,
+html[lang='fa'] input,
+html[lang='fa'] button,
+html[lang='fa'] textarea {
+  font-family: 'Vazirmatn', 'Segoe UI', Tahoma, sans-serif;
+}
+
+/* Persian text reads better with a little more line height. */
+html[lang='fa'] p,
+html[lang='fa'] li {
+  line-height: 1.9;
+}

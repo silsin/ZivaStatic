@@ -3,12 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { ShieldCheck, Loader2, AlertCircle, Check } from 'lucide-react'
 import client from '../api/client'
 import useAuthStore from '../store/authStore'
-
-const PERKS = [
-  'Your own dedicated IP address',
-  'All 4 connection configs included',
-  'Live within 10 minutes of ordering',
-]
+import { useLang } from '../i18n/LanguageContext'
 
 export default function RegisterPage() {
   const [email, setEmail] = useState('')
@@ -18,12 +13,13 @@ export default function RegisterPage() {
   const [loading, setLoading] = useState(false)
   const setToken = useAuthStore((s) => s.setToken)
   const navigate = useNavigate()
+  const { t } = useLang()
 
   async function handleSubmit(e) {
     e.preventDefault()
     setError('')
     if (password !== confirmPassword) {
-      setError('Passwords do not match.')
+      setError(t.auth.passwordMismatch)
       return
     }
     setLoading(true)
@@ -32,7 +28,7 @@ export default function RegisterPage() {
       setToken(res.data.access_token)
       navigate('/dashboard')
     } catch (err) {
-      setError(err.response?.data?.detail || 'Registration failed. Please try again.')
+      setError(err.response?.data?.detail || t.auth.registerError)
     } finally {
       setLoading(false)
     }
@@ -46,13 +42,13 @@ export default function RegisterPage() {
           <div className="w-12 h-12 bg-blue-600 rounded-xl flex items-center justify-center mx-auto mb-4">
             <ShieldCheck size={22} className="text-white" />
           </div>
-          <h1 className="text-2xl font-bold text-white mb-1">Create your account</h1>
-          <p className="text-gray-500 text-sm">Get your static IP address in minutes</p>
+          <h1 className="text-2xl font-bold text-white mb-1">{t.auth.registerTitle}</h1>
+          <p className="text-gray-500 text-sm">{t.auth.registerSub}</p>
         </div>
 
         {/* Perks */}
         <div className="bg-blue-500/5 border border-blue-500/15 rounded-xl p-4 mb-6 space-y-2">
-          {PERKS.map((p) => (
+          {t.auth.perks.map((p) => (
             <div key={p} className="flex items-center gap-2.5 text-sm text-gray-300">
               <span className="w-4 h-4 bg-blue-500/20 rounded-full flex items-center justify-center flex-shrink-0">
                 <Check size={10} className="text-blue-400" />
@@ -71,9 +67,10 @@ export default function RegisterPage() {
           )}
 
           <div className="space-y-1.5">
-            <label className="block text-sm text-gray-400 font-medium">Email address</label>
+            <label className="block text-sm text-gray-400 font-medium">{t.auth.email}</label>
             <input
               type="email"
+              dir="ltr"
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
@@ -83,9 +80,10 @@ export default function RegisterPage() {
           </div>
 
           <div className="space-y-1.5">
-            <label className="block text-sm text-gray-400 font-medium">Password</label>
+            <label className="block text-sm text-gray-400 font-medium">{t.auth.password}</label>
             <input
               type="password"
+              dir="ltr"
               required
               value={password}
               onChange={(e) => setPassword(e.target.value)}
@@ -95,9 +93,10 @@ export default function RegisterPage() {
           </div>
 
           <div className="space-y-1.5">
-            <label className="block text-sm text-gray-400 font-medium">Confirm password</label>
+            <label className="block text-sm text-gray-400 font-medium">{t.auth.confirmPassword}</label>
             <input
               type="password"
+              dir="ltr"
               required
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
@@ -111,14 +110,14 @@ export default function RegisterPage() {
             disabled={loading}
             className="w-full inline-flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold py-3 rounded-xl transition-colors"
           >
-            {loading ? <><Loader2 size={16} className="animate-spin" /> Creating account...</> : 'Create Account'}
+            {loading ? <><Loader2 size={16} className="animate-spin" /> {t.auth.registerLoading}</> : t.auth.registerButton}
           </button>
         </form>
 
         <p className="text-center text-gray-500 text-sm mt-6">
-          Already have an account?{' '}
+          {t.auth.haveAccount}{' '}
           <Link to="/login" className="text-blue-400 hover:text-blue-300 transition-colors">
-            Sign in
+            {t.auth.signIn}
           </Link>
         </p>
       </div>

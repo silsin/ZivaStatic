@@ -2,15 +2,10 @@ import { useEffect, useState } from 'react'
 import { ArrowRight, MapPin, Server, Clock, Check } from 'lucide-react'
 import client from '../api/client'
 import LocationCard from '../components/LocationCard'
-
-const INCLUDED = [
-  'Dedicated server for your IP only',
-  'All 4 connection configs included',
-  'Available 24/7',
-  'Cancel anytime',
-]
+import { useLang } from '../i18n/LanguageContext'
 
 export default function OrderPage() {
+  const { t, city, country, num, isRtl } = useLang()
   const [locations, setLocations] = useState([])
   const [selected, setSelected] = useState(null)
   const [loadingLocations, setLoadingLocations] = useState(true)
@@ -21,7 +16,7 @@ export default function OrderPage() {
     client
       .get('/locations')
       .then((res) => setLocations(res.data))
-      .catch(() => setError('Failed to load locations. Please refresh.'))
+      .catch(() => setError(t.order.loadError))
       .finally(() => setLoadingLocations(false))
   }, [])
 
@@ -36,7 +31,7 @@ export default function OrderPage() {
       })
       window.location.href = res.data.checkout_url
     } catch (err) {
-      setError(err.response?.data?.detail || 'Failed to start checkout. Please try again.')
+      setError(err.response?.data?.detail || t.order.checkoutError)
       setSubmitting(false)
     }
   }
@@ -48,30 +43,24 @@ export default function OrderPage() {
         {/* Header */}
         <div className="text-center mb-12">
           <h1 className="text-4xl sm:text-5xl font-extrabold mb-4 bg-gradient-to-br from-white to-gray-400 bg-clip-text text-transparent">
-            Choose Your IP Location
+            {t.order.title}
           </h1>
           <p className="text-gray-400 max-w-lg mx-auto text-lg">
-            Select the country where your dedicated IP address should be based.
-            Your server will be provisioned there automatically.
+            {t.order.sub}
           </p>
         </div>
 
         {/* Steps */}
         <div className="flex flex-wrap items-center justify-center gap-3 mb-12 text-sm">
-          {[
-            { n: 1, label: 'Pick location', active: true },
-            { n: 2, label: 'Complete order', active: false },
-            { n: 3, label: 'Server provisioned', active: false },
-            { n: 4, label: 'Download & connect', active: false },
-          ].map((s, i, arr) => (
+          {t.order.steps.map((label, idx) => ({ n: idx + 1, label, active: idx === 0 })).map((s, i, arr) => (
             <div key={s.n} className="flex items-center gap-3">
               <div className="flex items-center gap-2">
                 <span className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold ${s.active ? 'bg-blue-600 text-white' : 'bg-gray-800 text-gray-500'}`}>
-                  {s.n}
+                  {num(s.n)}
                 </span>
                 <span className={s.active ? 'text-white font-medium' : 'text-gray-500'}>{s.label}</span>
               </div>
-              {i < arr.length - 1 && <ArrowRight size={14} className="text-gray-700" />}
+              {i < arr.length - 1 && <ArrowRight size={14} className="text-gray-700 rtl:rotate-180" />}
             </div>
           ))}
         </div>
@@ -82,10 +71,10 @@ export default function OrderPage() {
           <div className="lg:col-span-2">
             <div className="flex items-center gap-2 mb-5">
               <MapPin size={16} className="text-blue-400" />
-              <span className="font-semibold text-white">Available Locations</span>
+              <span className="font-semibold text-white">{t.order.available}</span>
               {!loadingLocations && (
                 <span className="text-xs text-gray-500 bg-gray-800 px-2 py-0.5 rounded-full">
-                  {locations.length} locations
+                  {t.order.locationsCount(locations.length)}
                 </span>
               )}
             </div>
@@ -98,8 +87,8 @@ export default function OrderPage() {
 
             {loadingLocations ? (
               <div className="flex items-center justify-center py-20 text-gray-400">
-                <span className="animate-spin h-6 w-6 border-2 border-blue-400 border-t-transparent rounded-full mr-3" />
-                Loading locations...
+                <span className="animate-spin h-6 w-6 border-2 border-blue-400 border-t-transparent rounded-full me-3" />
+                {t.order.loadingLocations}
               </div>
             ) : (
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
@@ -120,26 +109,26 @@ export default function OrderPage() {
             <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6 sticky top-24">
               <h3 className="font-semibold text-white mb-5 flex items-center gap-2">
                 <Server size={16} className="text-blue-400" />
-                Order Summary
+                {t.order.summary}
               </h3>
 
               {selected ? (
                 <div className="bg-blue-500/10 border border-blue-500/20 rounded-xl px-4 py-3 mb-5 flex items-center gap-3">
                   <span className="text-2xl">{selected.flag_emoji}</span>
                   <div>
-                    <div className="font-semibold text-white text-sm">{selected.city}, {selected.country}</div>
-                    <div className="text-xs text-blue-400">Selected location</div>
+                    <div className="font-semibold text-white text-sm">{city(selected.city)}{isRtl ? '، ' : ', '}{country(selected.country)}</div>
+                    <div className="text-xs text-blue-400">{t.order.selectedLocation}</div>
                   </div>
                 </div>
               ) : (
                 <div className="bg-gray-800/50 border border-dashed border-gray-700 rounded-xl px-4 py-3 mb-5 text-center">
                   <MapPin size={18} className="text-gray-600 mx-auto mb-1" />
-                  <p className="text-gray-500 text-sm">Select a location</p>
+                  <p className="text-gray-500 text-sm">{t.order.selectLocation}</p>
                 </div>
               )}
 
               <div className="space-y-2 mb-5">
-                {INCLUDED.map((item) => (
+                {t.order.included.map((item) => (
                   <div key={item} className="flex items-center gap-2.5 text-sm text-gray-400">
                     <span className="w-4 h-4 bg-blue-500/20 rounded-full flex items-center justify-center flex-shrink-0">
                       <Check size={10} className="text-blue-400" />
@@ -151,10 +140,10 @@ export default function OrderPage() {
 
               <div className="border-t border-gray-800 pt-5 mb-5">
                 <div className="flex items-end justify-between">
-                  <span className="text-gray-400 text-sm">Monthly total</span>
+                  <span className="text-gray-400 text-sm">{t.order.monthlyTotal}</span>
                   <div className="text-right">
-                    <div className="text-2xl font-bold text-white">$9.99</div>
-                    <div className="text-xs text-gray-500">per month</div>
+                    <div className="text-2xl font-bold text-white">{t.common.price}</div>
+                    <div className="text-xs text-gray-500">{t.common.perMonth}</div>
                   </div>
                 </div>
               </div>
@@ -167,19 +156,19 @@ export default function OrderPage() {
                 {submitting ? (
                   <>
                     <span className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full" />
-                    Processing...
+                    {t.order.processing}
                   </>
                 ) : (
                   <>
-                    Continue to Payment
-                    <ArrowRight size={16} />
+                    {t.order.continue}
+                    <ArrowRight size={16} className="rtl:rotate-180" />
                   </>
                 )}
               </button>
 
               <div className="flex items-center justify-center gap-1.5 mt-3 text-xs text-gray-600">
                 <Clock size={11} />
-                Your IP will be live within 10 minutes
+                {t.order.live}
               </div>
             </div>
           </div>

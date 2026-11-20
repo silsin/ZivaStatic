@@ -1,11 +1,11 @@
 import { create } from 'zustand'
 
 const useAuthStore = create((set) => ({
-  token: localStorage.getItem('vpn_token') || null,
+  token: localStorage.getItem('zs_token') || null,
   user: null,
 
   setToken: (token) => {
-    localStorage.setItem('vpn_token', token)
+    localStorage.setItem('zs_token', token)
     set({ token })
   },
 
@@ -14,7 +14,7 @@ const useAuthStore = create((set) => ({
   },
 
   logout: () => {
-    localStorage.removeItem('vpn_token')
+    localStorage.removeItem('zs_token')
     set({ token: null, user: null })
   },
 }))
