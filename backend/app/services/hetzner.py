@@ -8,6 +8,16 @@ from hcloud.servers import ServerCreatePublicNetwork
 
 from app.config import settings
 
+EU_LOCATIONS = {"fsn1", "nbg1", "hel1"}
+
+
+def server_type_for_location(location_name: str) -> str:
+    """Server type to order for a location (cx* is only sold in EU datacenters)."""
+    if location_name in EU_LOCATIONS:
+        return settings.HETZNER_SERVER_TYPE
+    return settings.HETZNER_SERVER_TYPE_OTHER
+
+
 COUNTRY_FLAG: dict[str, str] = {
     "DE": "🇩🇪",
     "US": "🇺🇸",
@@ -58,9 +68,10 @@ def list_locations_sync() -> list[dict]:
 def create_server_sync(
     name: str,
     location_name: str,
-    server_type: str = "cx22",
+    server_type: str | None = None,
     ssh_public_key: str = None,
 ) -> dict:
+    server_type = server_type or server_type_for_location(location_name)
     client = _get_client()
 
     ssh_key_objects = []
@@ -130,7 +141,7 @@ async def list_locations() -> list[dict]:
 async def create_server(
     name: str,
     location_name: str,
-    server_type: str = "cx22",
+    server_type: str | None = None,
     ssh_public_key: str = None,
 ) -> dict:
     return await asyncio.to_thread(

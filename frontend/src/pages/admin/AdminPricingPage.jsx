@@ -8,6 +8,7 @@ const LOCATION_FLAGS = {
 
 export default function AdminPricingPage() {
   const [hetznerPrices, setHetznerPrices] = useState([])
+  const [typeByLocation, setTypeByLocation] = useState({})
   const [overrides, setOverrides] = useState([])
   const [locations, setLocations] = useState([])
   const [loading, setLoading] = useState(true)
@@ -24,6 +25,7 @@ export default function AdminPricingPage() {
         client.get('/locations'),
       ])
       setHetznerPrices(hRes.data.server_types || [])
+      setTypeByLocation(hRes.data.location_server_types || {})
       setOverrides(oRes.data)
       setLocations(lRes.data)
     } catch (e) { console.error(e) }
@@ -32,7 +34,12 @@ export default function AdminPricingPage() {
 
   useEffect(() => { load() }, [])
 
-  const cx22Price = hetznerPrices.find((t) => t.name === 'cx22')?.monthly_price_gross
+  // Cost of the server type we actually order for a location, at that location.
+  function costFor(locName) {
+    const type = typeByLocation[locName]
+    const price = hetznerPrices.find((t) => t.name === type)?.prices_by_location?.[locName]
+    return { type, price: price ?? null }
+  }
 
   function getOverride(locName) {
     return overrides.find((o) => o.location_name === locName)
@@ -79,7 +86,7 @@ export default function AdminPricingPage() {
       </div>
 
       <div className="bg-gray-900 border border-gray-800 rounded-xl p-4">
-        <p className="text-xs text-gray-500">Hetzner CX22 cost: <span className="text-white font-medium">${cx22Price ? cx22Price : 'N/A'}/mo</span> — Default selling price: <span className="text-blue-400 font-medium">$9.99/mo</span></p>
+        <p className="text-xs text-gray-500">Cost is the monthly Hetzner price of the server type ordered for each location, in your Hetzner account currency (usually EUR, incl. VAT). N/A means that type is not sold at that location. Default selling price: <span className="text-blue-400 font-medium">$9.99/mo</span></p>
       </div>
 
       {loading ? (
@@ -90,7 +97,7 @@ export default function AdminPricingPage() {
             <thead>
               <tr className="text-xs text-gray-500 border-b border-gray-800">
                 <th className="text-left px-5 py-3">Location</th>
-                <th className="text-left px-5 py-3">Hetzner CX22 Cost</th>
+                <th className="text-left px-5 py-3">Hetzner Cost</th>
                 <th className="text-left px-5 py-3">Our Price</th>
                 <th className="text-left px-5 py-3">Margin</th>
                 <th className="text-left px-5 py-3">Active</th>
@@ -102,7 +109,8 @@ export default function AdminPricingPage() {
                 const override = getOverride(loc.name)
                 const ourPrice = override ? override.price_usd : 9.99
                 const isActive = override ? override.is_active : true
-                const margin = cx22Price ? (ourPrice - cx22Price).toFixed(2) : null
+                const { type: hType, price: hPrice } = costFor(loc.name)
+                const margin = hPrice ? (ourPrice - hPrice).toFixed(2) : null
                 const isEditing = editing === loc.name
 
                 return (
@@ -112,7 +120,7 @@ export default function AdminPricingPage() {
                       {loc.city}, {loc.country} <span className="text-gray-600 ml-1 text-xs">({loc.name})</span>
                     </td>
                     <td className="px-5 py-3.5 text-sm text-gray-400">
-                      {cx22Price ? `$${cx22Price}/mo` : <span className="text-gray-600">N/A</span>}
+                      {hPrice ? <>{hPrice.toFixed(2)}/mo <span className="text-gray-600 text-xs">({hType})</span></> : <span className="text-gray-600">N/A {hType && `(${hType})`}</span>}
                     </td>
                     <td className="px-5 py-3.5">
                       {isEditing ? (
@@ -140,7 +148,7 @@ export default function AdminPricingPage() {
                     <td className="px-5 py-3.5 text-sm">
                       {margin !== null ? (
                         <span className={parseFloat(margin) > 0 ? 'text-green-400' : 'text-red-400'}>
-                          ${margin}
+                          {margin}
                         </span>
                       ) : <span className="text-gray-600">—</span>}
                     </td>
@@ -183,11 +191,11 @@ export default function AdminPricingPage() {
           <h2 className="text-sm font-semibold text-white">Hetzner Server Types Reference</h2>
         </div>
         <div className="p-5 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-          {hetznerPrices.slice(0, 8).map((t) => (
+          {hetznerPrices.filter((t) => /^(cx|cpx)/.test(t.name)).slice(0, 12).map((t) => (
             <div key={t.name} className="bg-gray-800 rounded-lg p-3">
               <p className="text-sm font-medium text-white">{t.name}</p>
               <p className="text-xs text-gray-500 mt-0.5">{t.cores} vCPU · {t.memory}GB RAM</p>
-              <p className="text-sm text-blue-400 mt-1">${t.monthly_price_gross ? parseFloat(t.monthly_price_gross).toFixed(2) : 'N/A'}/mo</p>
+              <p className="text-sm text-blue-400 mt-1">{t.monthly_price_gross ? parseFloat(t.monthly_price_gross).toFixed(2) : 'N/A'}/mo</p>
             </div>
           ))}
         </div>

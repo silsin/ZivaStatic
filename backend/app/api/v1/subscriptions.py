@@ -81,7 +81,7 @@ async def create_subscription(
             create_server_sync,
             server_name,
             body.location,
-            "cx22",
+            None,
             public_key_openssh,
         )
 

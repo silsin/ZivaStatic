@@ -14,6 +14,7 @@ from app.config import settings
 from app.database import get_db
 from app.models.admin_settings import AdminSetting
 from app.models.price_override import PriceOverride
+from app.services.hetzner import server_type_for_location
 from app.models.server import Server
 from app.models.subscription import Subscription
 from app.models.user import User
@@ -507,20 +508,28 @@ async def get_hetzner_prices(
             if st.get("deprecated"):
                 continue
             prices = st.get("prices", [])
-            monthly_gross = None
-            if prices:
-                # Take the first location's price
-                price_entry = prices[0]
-                price_monthly = price_entry.get("price_monthly", {})
-                monthly_gross = price_entry.get("price_monthly", {}).get("gross")
+            by_location = {}
+            for entry in prices:
+                gross = entry.get("price_monthly", {}).get("gross")
+                if gross:
+                    by_location[entry.get("location")] = float(gross)
+            # Headline price: Falkenstein if sold there, otherwise the first location listed
+            monthly_gross = by_location.get("fsn1") or (next(iter(by_location.values()), None))
             server_types.append({
                 "name": st["name"],
                 "description": st.get("description", ""),
                 "cores": st.get("cores"),
                 "memory": st.get("memory"),
                 "disk": st.get("disk"),
-                "monthly_price_gross": float(monthly_gross) if monthly_gross else None,
+                "monthly_price_gross": monthly_gross,
+                "prices_by_location": by_location,
             })
-        return {"server_types": server_types}
+        return {
+            "server_types": server_types,
+            "location_server_types": {
+                loc: server_type_for_location(loc)
+                for loc in ("fsn1", "nbg1", "hel1", "ash", "hil", "sin")
+            },
+        }
     except Exception as e:
         return {"server_types": [], "error": str(e)}

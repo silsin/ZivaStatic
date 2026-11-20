@@ -7,7 +7,7 @@ from pydantic import BaseModel
 
 class SubscriptionCreate(BaseModel):
     location: str
-    server_type: str = "cx22"
+    server_type: Optional[str] = None  # ignored; the server type is chosen per location
 
 
 class SubscriptionOut(BaseModel):

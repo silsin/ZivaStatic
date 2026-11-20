@@ -85,7 +85,7 @@ async def stripe_webhook(request: Request, db: AsyncSession = Depends(get_db)):
             create_server_sync,
             server_name,
             location,
-            "cx22",
+            None,
             public_key_openssh,
         )
 

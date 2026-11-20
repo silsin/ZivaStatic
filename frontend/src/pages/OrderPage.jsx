@@ -27,7 +27,6 @@ export default function OrderPage() {
     try {
       const res = await client.post('/subscriptions', {
         location: selected.name,
-        server_type: 'cx22',
       })
       window.location.href = res.data.checkout_url
     } catch (err) {
